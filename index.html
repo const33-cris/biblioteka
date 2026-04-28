@@ -1,105 +1,271 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Бібліотека Монастиря</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f1ea; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { color: #5d4037; border-bottom: 2px solid #d7ccc8; padding-bottom: 10px; }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #d1d1d1; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #4caf50; color: white; border: none; font-weight: bold; cursor: pointer; }
-        button:hover { background-color: #45a049; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #8d6e63; color: white; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        #search { background-image: url('https://www.w3schools.com/howto/searchicon.png'); background-position: 10px 12px; background-repeat: no-repeat; padding-left: 40px; }
+        :root {
+            --primary-color: #5d4037;
+            --accent-color: #8d6e63;
+            --bg-color: #f4f1ea;
+            --success-color: #4caf50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            text-align: center;
+            border-bottom: 2px solid #d7ccc8;
+            padding-bottom: 10px;
+        }
+
+        /* Стилі форми */
+        .admin-section {
+            background: #fafafa;
+            border: 1px dashed var(--accent-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: none; /* Приховано за замовчуванням */
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            box-shadow: 0 0 5px rgba(141, 110, 99, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-add { background-color: var(--success-color); color: white; }
+        .btn-add:hover { background-color: #45a049; }
+
+        .btn-toggle { background-color: var(--primary-color); color: white; margin-bottom: 20px; }
+        
+        /* Стилі таблиці та пошуку */
+        #search {
+            margin-bottom: 20px;
+            border: 2px solid var(--accent-color);
+            font-weight: bold;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: var(--accent-color);
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover { background-color: #f5f5f5; }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .status-available { background: #c8e6c9; color: #2e7d32; }
+        .status-borrowed { background: #ffccbc; color: #d84315; }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>📖 Реєстрація нової книги</h2>
-    <input type="text" id="title" placeholder="Назва книги">
-    <input type="text" id="author" placeholder="Автор">
-    <input type="number" id="year" placeholder="Рік видання">
-    <select id="lang">
-        <option value="Українська">Українська</option>
-        <option value="Церковнослов'янська">Церковнослов'янська</option>
-    </select>
-    <input type="text" id="shelf" placeholder="Місце на полиці">
-    <select id="status">
-        <option value="В наявності">В наявності</option>
-        <option value="Позичена">Позичена</option>
-    </select>
-    <button onclick="addBook()">Додати в каталог</button>
+    <h1>⛪ Монастирська Бібліотека</h1>
 
-    <hr>
+    <button class="btn-toggle" onclick="toggleAdmin()">⚙️ Панель бібліотекаря (Додати книгу)</button>
 
-    <h2>🔍 Пошук по бібліотеці</h2>
-    <input type="text" id="search" onkeyup="filterTable()" placeholder="Шукати за назвою або автором...">
+    <div id="adminPanel" class="admin-section">
+        <h2>Додати нову книгу</h2>
+        <input type="text" id="title" placeholder="Назва книги *" required>
+        <input type="text" id="author" placeholder="Автор">
+        <input type="number" id="year" placeholder="Рік видання" value="2024">
+        <select id="lang">
+            <option value="Українська">Українська</option>
+            <option value="Церковнослов'янська">Церковнослов'янська</option>
+            <option value="Грецька">Грецька</option>
+            <option value="Латинь">Латинь</option>
+        </select>
+        <input type="text" id="shelf" placeholder="Місце на полиці (напр. Секція А, полиця 3)">
+        <select id="status">
+            <option value="В наявності">В наявності</option>
+            <option value="Позичена">Позичена</option>
+        </select>
+        <hr>
+        <input type="password" id="adminPass" placeholder="Введіть пароль для підтвердження" style="border-color: #f44336;">
+        <button class="btn-add" onclick="addBook()">Записати в книгу обліку</button>
+    </div>
+
+    <h2>🔍 Пошук у каталозі</h2>
+    <input type="text" id="search" onkeyup="filterTable()" placeholder="Введіть назву, автора або мову для пошуку...">
     
-    <table id="bookTable">
-        <thead>
-            <tr>
-                <th>Назва</th><th>Автор</th><th>Рік</th><th>Мова</th><th>Полиця</th><th>Статус</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-    </table>
+    <div class="table-container">
+        <table id="bookTable">
+            <thead>
+                <tr>
+                    <th>Назва</th>
+                    <th>Автор</th>
+                    <th>Рік</th>
+                    <th>Мова</th>
+                    <th>Полиця</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1eSsFypqw4eEnpIB6oh9QGEgxl-jc7pwr7oWaQRAMGKglibWT2eUjkJi_eki3DybJ/exec';
+    // ВСТАВТЕ СЮДИ ВАШЕ ПОСИЛАННЯ (WebApp URL)
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8VZn86CEwc5lgGnYQRVVuPYR_Uuy8qaKk2nlQro8Go79pt3QEvEl0BsWBtSOFXbQN/exec';
 
-    function loadBooks() {
-        fetch(SCRIPT_URL)
-            .then(res => res.json())
-            .then(data => {
-                let tbody = document.querySelector("#bookTable tbody");
-                tbody.innerHTML = "";
-                data.slice(1).forEach(row => { // пропускаємо заголовок
-                    let tr = document.createElement("tr");
-                    row.forEach(cell => {
-                        let td = document.createElement("td");
-                        td.textContent = cell;
-                        tr.appendChild(td);
-                    });
-                    tbody.appendChild(tr);
-                });
-            });
+    // Показ/приховування адмінки
+    function toggleAdmin() {
+        const panel = document.getElementById("adminPanel");
+        panel.style.display = (panel.style.display === "none" || panel.style.display === "") ? "block" : "none";
     }
 
+    // Завантаження даних при відкритті
+    async function loadBooks() {
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const data = await response.json();
+            const tbody = document.querySelector("#bookTable tbody");
+            tbody.innerHTML = "";
+
+            // Пропускаємо перший рядок (заголовки таблиці)
+            data.slice(1).reverse().forEach(row => { 
+                const tr = document.createElement("tr");
+                
+                row.forEach((cell, index) => {
+                    const td = document.createElement("td");
+                    if (index === 5) { // Колонка статусу
+                        const badgeClass = cell === "В наявності" ? "status-available" : "status-borrowed";
+                        td.innerHTML = `<span class="status-badge ${badgeClass}">${cell}</span>`;
+                    } else {
+                        td.textContent = cell;
+                    }
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error("Помилка завантаження:", error);
+        }
+    }
+
+    // Відправка нової книги
     function addBook() {
-        let book = {
-            title: document.getElementById('title').value,
+        const pass = document.getElementById('adminPass').value;
+        const title = document.getElementById('title').value;
+
+        if (!title || !pass) {
+            alert("Назва книги та пароль обов'язкові!");
+            return;
+        }
+
+        const book = {
+            title: title,
             author: document.getElementById('author').value,
             year: document.getElementById('year').value,
             lang: document.getElementById('lang').value,
             shelf: document.getElementById('shelf').value,
-            status: document.getElementById('status').value
+            status: document.getElementById('status').value,
+            password: pass
         };
+
+        // Візуальний відгук
+        const btn = document.querySelector(".btn-add");
+        btn.disabled = true;
+        btn.textContent = "Зберігаємо...";
 
         fetch(SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors', // Для Google Apps Script
             body: JSON.stringify(book)
         }).then(() => {
-            alert("Книгу додано!");
+            alert("Запит надіслано! Якщо пароль вірний, дані оновляться.");
             location.reload();
+        }).catch(err => {
+            alert("Помилка: " + err);
+            btn.disabled = false;
+            btn.textContent = "Записати в книгу обліку";
         });
     }
 
+    // Фільтр пошуку
     function filterTable() {
-        let input = document.getElementById("search").value.toUpperCase();
-        let trs = document.querySelectorAll("#bookTable tbody tr");
+        const input = document.getElementById("search").value.toUpperCase();
+        const trs = document.querySelectorAll("#bookTable tbody tr");
+        
         trs.forEach(tr => {
-            tr.style.display = tr.innerText.toUpperCase().includes(input) ? "" : "none";
+            const text = tr.textContent.toUpperCase();
+            tr.style.display = text.includes(input) ? "" : "none";
         });
     }
 
+    // Завантажити книги відразу
     window.onload = loadBooks;
 </script>
 
