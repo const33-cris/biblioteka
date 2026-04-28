@@ -8,24 +8,30 @@
         :root { --primary: #5d4037; --accent: #8d6e63; --bg: #f4f1ea; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1, h2 { color: var(--primary); text-align: center; }
         
-        button { padding: 10px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-toggle { background: var(--primary); color: white; width: 100%; margin-bottom: 20px; }
-        .btn-add { background: #4caf50; color: white; width: 100%; }
-        .btn-reserve { background: #2196f3; color: white; font-size: 12px; }
-        .btn-reserve:disabled { background: #ccc; }
-
-        .admin-section { background: #fafafa; border: 1px dashed var(--accent); padding: 20px; border-radius: 8px; margin-bottom: 25px; display: none; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        
+        /* Таблиця */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background: var(--accent); color: white; }
         
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px; }
+        button { padding: 10px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-reserve { background: #2196f3; color: white; }
+        .btn-toggle { background: var(--primary); color: white; width: 100%; margin-bottom: 20px; }
+
+        /* Модальне вікно */
+        #orderModal {
+            display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white; margin: 15% auto; padding: 20px; border-radius: 10px; width: 300px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        
+        .admin-section { background: #fafafa; border: 1px dashed var(--accent); padding: 20px; border-radius: 8px; margin-bottom: 25px; display: none; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; }
         .status-available { background: #c8e6c9; color: #2e7d32; }
-        .status-borrowed { background: #ffccbc; color: #d84315; }
         .status-reserved { background: #fff9c4; color: #f57f17; }
     </style>
 </head>
@@ -33,122 +39,94 @@
 
 <div class="container">
     <h1>⛪ Монастирська Бібліотека</h1>
-    
     <button class="btn-toggle" onclick="toggleAdmin()">⚙️ Панель бібліотекаря</button>
 
     <div id="adminPanel" class="admin-section">
-        <h2>Додати нову книгу</h2>
-        <input type="text" id="title" placeholder="Назва книги *">
+        <input type="text" id="title" placeholder="Назва книги">
         <input type="text" id="author" placeholder="Автор">
-        <input type="number" id="year" placeholder="Рік" value="2026">
-        <select id="lang">
-            <option value="Українська">Українська</option>
-            <option value="Церковнослов'янська">Церковнослов'янська</option>
-            <option value="Латинь">Латинь</option>
-        </select>
-        <input type="text" id="shelf" placeholder="Полиця">
-        <select id="status">
-            <option value="В наявності">В наявності</option>
-            <option value="Позичена">Позичена</option>
-        </select>
-        <button class="btn-add" id="addBtn" onclick="addBook()">✅ Додати в базу</button>
+        <button style="background:#4caf50; color:white; width:100%" onclick="addBook()">Додати</button>
     </div>
 
-    <h2>🔍 Пошук та замовлення</h2>
-    <input type="text" id="search" onkeyup="filterTable()" placeholder="Шукати книгу..." style="width:100%; padding:12px; margin-bottom:20px; border:2px solid var(--accent); border-radius:6px;">
+    <input type="text" id="search" onkeyup="filterTable()" placeholder="🔍 Пошук книги..." style="width:100%; padding:12px; margin-bottom:20px; border:2px solid var(--accent); border-radius:6px;">
 
     <div style="overflow-x: auto;">
         <table id="bookTable">
             <thead>
-                <tr>
-                    <th>Назва</th><th>Автор</th><th>Рік</th><th>Мова</th><th>Полиця</th><th>Статус</th><th>Дія</th>
-                </tr>
+                <tr><th>Назва</th><th>Автор</th><th>Рік</th><th>Мова</th><th>Місце</th><th>Статус</th><th>Дія</th></tr>
             </thead>
             <tbody></tbody>
         </table>
     </div>
 </div>
 
+<div id="orderModal">
+    <div class="modal-content">
+        <h3>Замовлення книги</h3>
+        <p id="modalBookTitle" style="font-weight:bold; color:var(--primary);"></p>
+        <input type="text" id="clientName" placeholder="Ваше Ім'я та Прізвище">
+        <input type="email" id="clientEmail" placeholder="Ваш Email">
+        <button style="background:#4caf50; color:white; width:100%" onclick="submitOrder()">Підтвердити замовлення</button>
+        <button style="background:#ccc; width:100%; margin-top:5px;" onclick="closeModal()">Скасувати</button>
+    </div>
+</div>
+
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZ49shOTU0P9ZXayTO_bzzcZ5WnTEaYRRHLzTVRuNJWwSG465QplJxdsN0iLWm5XiV/exec'; // Замініть на нове після перепублікації!
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2qS8J3NDrcPzqqsHtsPq4RdhNKH8hdbvbFgtWfeFUjkwKABAQ5U4Ez_UAXWR5SPRE/exec'; 
     const SECRET_PASS = 'ofm';
-    let isAuthorized = false;
+    let currentBook = null;
 
     function toggleAdmin() {
-        if (!isAuthorized) {
-            if (prompt("Пароль:") === SECRET_PASS) {
-                isAuthorized = true;
-                document.getElementById("adminPanel").style.display = "block";
-            }
-        } else {
-            let s = document.getElementById("adminPanel").style;
-            s.display = s.display === "none" ? "block" : "none";
-        }
+        if (prompt("Пароль:") === SECRET_PASS) document.getElementById("adminPanel").style.display = "block";
     }
 
     async function loadBooks() {
-        try {
-            const r = await fetch(SCRIPT_URL);
-            const d = await r.json();
-            const tb = document.querySelector("#bookTable tbody");
-            tb.innerHTML = "";
-            d.slice(1).reverse().forEach(row => {
-                const tr = document.createElement("tr");
-                row.forEach((cell, i) => {
-                    const td = document.createElement("td");
-                    if (i === 5) {
-                        let cls = cell === "В наявності" ? "status-available" : (cell === "Зарезервовано" ? "status-reserved" : "status-borrowed");
-                        td.innerHTML = `<span class="status-badge ${cls}">${cell}</span>`;
-                    } else td.textContent = cell;
-                    tr.appendChild(td);
-                });
-
-                // Кнопка замовлення для клієнта
-                const actionTd = document.createElement("td");
-                if (row[5] === "В наявності") {
-                    actionTd.innerHTML = `<button class="btn-reserve" onclick="reserveBook('${row[0]}', '${row[1]}')">Замовити</button>`;
-                } else {
-                    actionTd.innerHTML = `<small style="color:gray">Недоступно</small>`;
-                }
-                tr.appendChild(actionTd);
-                tb.appendChild(tr);
+        const r = await fetch(SCRIPT_URL);
+        const d = await r.json();
+        const tb = document.querySelector("#bookTable tbody");
+        tb.innerHTML = "";
+        d.slice(1).reverse().forEach(row => {
+            const tr = document.createElement("tr");
+            row.slice(0,6).forEach((cell, i) => {
+                const td = document.createElement("td");
+                if (i === 5) {
+                    let cls = cell === "В наявності" ? "status-available" : "status-reserved";
+                    td.innerHTML = `<span class="status-badge ${cls}">${cell}</span>`;
+                } else td.textContent = cell;
+                tr.appendChild(td);
             });
-        } catch (e) { console.error(e); }
-    }
-
-    function reserveBook(title, author) {
-        if (!confirm(`Бажаєте зарезервувати книгу "${title}"?`)) return;
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ action: "reserve", title: title, author: author })
-        }).then(() => {
-            alert("Книгу зарезервовано! Брат-бібліотекар побачить ваше замовлення.");
-            loadBooks();
+            const actionTd = document.createElement("td");
+            if (row[5] === "В наявності") {
+                actionTd.innerHTML = `<button class="btn-reserve" onclick="openModal('${row[0]}', '${row[1]}')">Замовити</button>`;
+            } else {
+                actionTd.innerHTML = `<small>${row[6] || 'Зайнято'}</small>`; // Показує ім'я замовника, якщо воно є
+            }
+            tr.appendChild(actionTd);
+            tb.appendChild(tr);
         });
     }
 
-    function addBook() {
-        const title = document.getElementById('title').value;
-        if (!title) return alert("Назва обов'язкова!");
-        const btn = document.getElementById('addBtn');
-        btn.disabled = true;
+    function openModal(title, author) {
+        currentBook = { title, author };
+        document.getElementById("modalBookTitle").textContent = title;
+        document.getElementById("orderModal").style.display = "block";
+    }
+
+    function closeModal() {
+        document.getElementById("orderModal").style.display = "none";
+    }
+
+    function submitOrder() {
+        const name = document.getElementById("clientName").value;
+        const email = document.getElementById("clientEmail").value;
+        if (!name || !email) return alert("Заповніть всі поля!");
 
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
-            body: JSON.stringify({
-                password: SECRET_PASS,
-                title: title,
-                author: document.getElementById('author').value,
-                year: document.getElementById('year').value,
-                lang: document.getElementById('lang').value,
-                shelf: document.getElementById('shelf').value,
-                status: document.getElementById('status').value
-            })
+            body: JSON.stringify({ action: "reserve", title: currentBook.title, author: currentBook.author, userName: name, userEmail: email })
         }).then(() => {
-            document.getElementById('title').value = "";
-            btn.disabled = false;
+            alert("Замовлення прийнято!");
+            closeModal();
             loadBooks();
         });
     }
@@ -161,8 +139,7 @@
     }
 
     window.onload = loadBooks;
-    // Оновлювати список кожні 30 секунд для синхронізації
-    setInterval(loadBooks, 30000);
+    setInterval(loadBooks, 40000);
 </script>
 </body>
 </html>
