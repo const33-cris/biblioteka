@@ -135,93 +135,51 @@
     <button class="btn-toggle" onclick="toggleAdmin()">⚙️ Панель бібліотекаря (Додати книгу)</button>
 
     <div id="adminPanel" class="admin-section">
-        <h2>Додати нову книгу</h2>
-        <input type="text" id="title" placeholder="Назва книги *" required>
-        <input type="text" id="author" placeholder="Автор">
-        <input type="number" id="year" placeholder="Рік видання" value="2024">
-        <select id="lang">
-            <option value="Українська">Українська</option>
-            <option value="Церковнослов'янська">Церковнослов'янська</option>
-            <option value="Грецька">Грецька</option>
-            <option value="Латинь">Латинь</option>
-        </select>
-        <input type="text" id="shelf" placeholder="Місце на полиці (напр. Секція А, полиця 3)">
-        <select id="status">
-            <option value="В наявності">В наявності</option>
-            <option value="Позичена">Позичена</option>
-        </select>
-        <hr>
-        <input type="password" id="adminPass" placeholder="Введіть пароль для підтвердження" style="border-color: #f44336;">
-        <button class="btn-add" onclick="addBook()">Записати в книгу обліку</button>
-    </div>
-
-    <h2>🔍 Пошук у каталозі</h2>
-    <input type="text" id="search" onkeyup="filterTable()" placeholder="Введіть назву, автора або мову для пошуку...">
-    
-    <div class="table-container">
-        <table id="bookTable">
-            <thead>
-                <tr>
-                    <th>Назва</th>
-                    <th>Автор</th>
-                    <th>Рік</th>
-                    <th>Мова</th>
-                    <th>Полиця</th>
-                    <th>Статус</th>
-                </tr>
-            </thead>
-            <tbody>
-                </tbody>
-        </table>
-    </div>
+    <h2>Додати нову книгу</h2>
+    <input type="text" id="title" placeholder="Назва книги *" required>
+    <input type="text" id="author" placeholder="Автор">
+    <input type="number" id="year" placeholder="Рік видання" value="2026">
+    <select id="lang">
+        <option value="Українська">Українська</option>
+        <option value="Церковнослов'янська">Церковнослов'янська</option>
+        <option value="Грецька">Грецька</option>
+        <option value="Латинь">Латинь</option>
+    </select>
+    <input type="text" id="shelf" placeholder="Місце на полиці">
+    <select id="status">
+        <option value="В наявності">В наявності</option>
+        <option value="Позичена">Позичена</option>
+    </select>
+    <button class="btn-add" onclick="addBook()">Записати в книгу обліку</button>
 </div>
 
 <script>
-    // ВСТАВТЕ СЮДИ ВАШЕ ПОСИЛАННЯ (WebApp URL)
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8VZn86CEwc5lgGnYQRVVuPYR_Uuy8qaKk2nlQro8Go79pt3QEvEl0BsWBtSOFXbQN/exec';
+    const SECRET_PASS = 'ofm'; // Впишіть сюди той самий пароль, що в скрипті
+    let isAuthorized = false;
 
-    // Показ/приховування адмінки
+    // Функція відкриття панелі з перевіркою
     function toggleAdmin() {
-        const panel = document.getElementById("adminPanel");
-        panel.style.display = (panel.style.display === "none" || panel.style.display === "") ? "block" : "none";
-    }
-
-    // Завантаження даних при відкритті
-    async function loadBooks() {
-        try {
-            const response = await fetch(SCRIPT_URL);
-            const data = await response.json();
-            const tbody = document.querySelector("#bookTable tbody");
-            tbody.innerHTML = "";
-
-            // Пропускаємо перший рядок (заголовки таблиці)
-            data.slice(1).reverse().forEach(row => { 
-                const tr = document.createElement("tr");
-                
-                row.forEach((cell, index) => {
-                    const td = document.createElement("td");
-                    if (index === 5) { // Колонка статусу
-                        const badgeClass = cell === "В наявності" ? "status-available" : "status-borrowed";
-                        td.innerHTML = `<span class="status-badge ${badgeClass}">${cell}</span>`;
-                    } else {
-                        td.textContent = cell;
-                    }
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-            });
-        } catch (error) {
-            console.error("Помилка завантаження:", error);
+        if (!isAuthorized) {
+            let pass = prompt("Введіть пароль бібліотекаря:");
+            if (pass === SECRET_PASS) {
+                isAuthorized = true;
+                document.getElementById("adminPanel").style.display = "block";
+            } else {
+                alert("Невірний пароль!");
+            }
+        } else {
+            // Якщо вже авторизовані, просто перемикаємо видимість
+            const panel = document.getElementById("adminPanel");
+            panel.style.display = (panel.style.display === "none") ? "block" : "none";
         }
     }
 
-    // Відправка нової книги
+    // Оновлена функція відправки (пароль береться зі змінної SECRET_PASS)
     function addBook() {
-        const pass = document.getElementById('adminPass').value;
         const title = document.getElementById('title').value;
-
-        if (!title || !pass) {
-            alert("Назва книги та пароль обов'язкові!");
+        if (!title) {
+            alert("Введіть назву книги!");
             return;
         }
 
@@ -232,40 +190,56 @@
             lang: document.getElementById('lang').value,
             shelf: document.getElementById('shelf').value,
             status: document.getElementById('status').value,
-            password: pass
+            password: SECRET_PASS // Використовуємо пароль, який ми вже знаємо
         };
 
-        // Візуальний відгук
         const btn = document.querySelector(".btn-add");
         btn.disabled = true;
         btn.textContent = "Зберігаємо...";
 
         fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // Для Google Apps Script
+            mode: 'no-cors',
             body: JSON.stringify(book)
         }).then(() => {
-            alert("Запит надіслано! Якщо пароль вірний, дані оновляться.");
+            alert("Книгу успішно додано!");
             location.reload();
         }).catch(err => {
             alert("Помилка: " + err);
             btn.disabled = false;
-            btn.textContent = "Записати в книгу обліку";
         });
     }
 
-    // Фільтр пошуку
+    // Функція завантаження книг (залишається без змін)
+    async function loadBooks() {
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const data = await response.json();
+            const tbody = document.querySelector("#bookTable tbody");
+            tbody.innerHTML = "";
+            data.slice(1).reverse().forEach(row => { 
+                const tr = document.createElement("tr");
+                row.forEach((cell, index) => {
+                    const td = document.createElement("td");
+                    if (index === 5) {
+                        const badgeClass = cell === "В наявності" ? "status-available" : "status-borrowed";
+                        td.innerHTML = `<span class="status-badge ${badgeClass}">${cell}</span>`;
+                    } else { td.textContent = cell; }
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        } catch (e) { console.error(e); }
+    }
+
     function filterTable() {
         const input = document.getElementById("search").value.toUpperCase();
         const trs = document.querySelectorAll("#bookTable tbody tr");
-        
         trs.forEach(tr => {
-            const text = tr.textContent.toUpperCase();
-            tr.style.display = text.includes(input) ? "" : "none";
+            tr.style.display = tr.textContent.toUpperCase().includes(input) ? "" : "none";
         });
     }
 
-    // Завантажити книги відразу
     window.onload = loadBooks;
 </script>
 
