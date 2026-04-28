@@ -30,9 +30,12 @@
         .modal-content input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         
         .admin-section { background: #fafafa; border: 1px dashed var(--accent); padding: 20px; border-radius: 8px; margin-bottom: 25px; display: none; }
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-        .status-available { background: #c8e6c9; color: #2e7d32; }
-        .status-reserved { background: #fff9c4; color: #f57f17; }
+        /* Класи статусів */
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px; }
+        
+        .status-available { background: #c8e6c9; color: #2e7d32; } /* Зелений */
+        .status-reserved { background: #ffecb3; color: #f57f17; }  /* Жовтий */
+        .status-borrowed { background: #ffcdd2; color: #c62828; }  /* Червоний для позичених */
     </style>
 </head>
 <body>
@@ -89,7 +92,19 @@
             row.slice(0,6).forEach((cell, i) => {
                 const td = document.createElement("td");
                 if (i === 5) {
-                    let cls = cell === "В наявності" ? "status-available" : "status-reserved";
+                    if (i === 5) {
+                        // Визначаємо колір тла залежно від статусу
+                        let cls;
+                        if (cell === "В наявності") {
+                            cls = "status-available"; // Зелений
+                        } else if (cell === "Зарезервовано") {
+                            cls = "status-reserved";   // Жовтий
+                        } else {
+                            cls = "status-borrowed";   // Червоний для Позичено та всього іншого
+                        }
+                        
+                        td.innerHTML = `<span class="status-badge ${cls}">${cell}</span>`;
+                    }
                     td.innerHTML = `<span class="status-badge ${cls}">${cell}</span>`;
                 } else td.textContent = cell;
                 tr.appendChild(td);
