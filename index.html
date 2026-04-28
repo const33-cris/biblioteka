@@ -9,7 +9,6 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* Таблиця */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background: var(--accent); color: white; }
@@ -18,7 +17,6 @@
         .btn-reserve { background: #2196f3; color: white; }
         .btn-toggle { background: var(--primary); color: white; width: 100%; margin-bottom: 20px; }
 
-        /* Модальне вікно */
         #orderModal {
             display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.5);
@@ -30,12 +28,12 @@
         .modal-content input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         
         .admin-section { background: #fafafa; border: 1px dashed var(--accent); padding: 20px; border-radius: 8px; margin-bottom: 25px; display: none; }
-        /* Класи статусів */
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px; }
         
+        /* Статуси з кольорами */
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block; }
         .status-available { background: #c8e6c9; color: #2e7d32; } /* Зелений */
         .status-reserved { background: #ffecb3; color: #f57f17; }  /* Жовтий */
-        .status-borrowed { background: #ffcdd2; color: #c62828; }  /* Червоний для позичених */
+        .status-borrowed { background: #ffcdd2; color: #c62828; }  /* Червоний */
     </style>
 </head>
 <body>
@@ -47,7 +45,18 @@
     <div id="adminPanel" class="admin-section">
         <input type="text" id="title" placeholder="Назва книги">
         <input type="text" id="author" placeholder="Автор">
-        <button style="background:#4caf50; color:white; width:100%" onclick="addBook()">Додати</button>
+        <input type="number" id="year" placeholder="Рік" value="2026">
+        <select id="lang">
+            <option value="Українська">Українська</option>
+            <option value="Церковнослов'янська">Церковнослов'янська</option>
+            <option value="Латинь">Латинь</option>
+        </select>
+        <input type="text" id="shelf" placeholder="Місце">
+        <select id="status">
+            <option value="В наявності">В наявності</option>
+            <option value="Позичено">Позичено</option>
+        </select>
+        <button style="background:#4caf50; color:white; width:100%" id="addBtn" onclick="addBook()">Додати</button>
     </div>
 
     <input type="text" id="search" onkeyup="filterTable()" placeholder="🔍 Пошук книги..." style="width:100%; padding:12px; margin-bottom:20px; border:2px solid var(--accent); border-radius:6px;">
@@ -68,56 +77,59 @@
         <p id="modalBookTitle" style="font-weight:bold; color:var(--primary);"></p>
         <input type="text" id="clientName" placeholder="Ваше Ім'я та Прізвище">
         <input type="email" id="clientEmail" placeholder="Ваш Email">
-        <button style="background:#4caf50; color:white; width:100%" onclick="submitOrder()">Підтвердити замовлення</button>
+        <button style="background:#4caf50; color:white; width:100%" onclick="submitOrder()">Підтвердити</button>
         <button style="background:#ccc; width:100%; margin-top:5px;" onclick="closeModal()">Скасувати</button>
     </div>
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2qS8J3NDrcPzqqsHtsPq4RdhNKH8hdbvbFgtWfeFUjkwKABAQ5U4Ez_UAXWR5SPRE/exec'; 
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylOK1qW-I4Jvn_-gGK9DK1szlqJ94WKcVRNgAfccRkwr1KM5hl4lR5Jv8soJiRAdx6/exec'; 
     const SECRET_PASS = 'ofm';
     let currentBook = null;
+    let isAuthorized = false;
 
     function toggleAdmin() {
-        if (prompt("Пароль:") === SECRET_PASS) document.getElementById("adminPanel").style.display = "block";
+        if (!isAuthorized) {
+            if (prompt("Пароль:") === SECRET_PASS) {
+                isAuthorized = true;
+                document.getElementById("adminPanel").style.display = "block";
+            }
+        } else {
+            let s = document.getElementById("adminPanel").style;
+            s.display = s.display === "none" ? "block" : "none";
+        }
     }
 
     async function loadBooks() {
-        const r = await fetch(SCRIPT_URL);
-        const d = await r.json();
-        const tb = document.querySelector("#bookTable tbody");
-        tb.innerHTML = "";
-        d.slice(1).reverse().forEach(row => {
-            const tr = document.createElement("tr");
-            row.slice(0,6).forEach((cell, i) => {
-                const td = document.createElement("td");
-                if (i === 5) {
+        try {
+            const r = await fetch(SCRIPT_URL);
+            const d = await r.json();
+            const tb = document.querySelector("#bookTable tbody");
+            tb.innerHTML = "";
+            d.slice(1).reverse().forEach(row => {
+                const tr = document.createElement("tr");
+                row.slice(0,6).forEach((cell, i) => {
+                    const td = document.createElement("td");
                     if (i === 5) {
-                        // Визначаємо колір тла залежно від статусу
-                        let cls;
-                        if (cell === "В наявності") {
-                            cls = "status-available"; // Зелений
-                        } else if (cell === "Зарезервовано") {
-                            cls = "status-reserved";   // Жовтий
-                        } else {
-                            cls = "status-borrowed";   // Червоний для Позичено та всього іншого
-                        }
+                        let clsName = "";
+                        if (cell === "В наявності") clsName = "status-available";
+                        else if (cell === "Зарезервовано") clsName = "status-reserved";
+                        else clsName = "status-borrowed";
                         
-                        td.innerHTML = `<span class="status-badge ${cls}">${cell}</span>`;
-                    }
-                    td.innerHTML = `<span class="status-badge ${cls}">${cell}</span>`;
-                } else td.textContent = cell;
-                tr.appendChild(td);
+                        td.innerHTML = `<span class="status-badge ${clsName}">${cell}</span>`;
+                    } else td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                const actionTd = document.createElement("td");
+                if (row[5] === "В наявності") {
+                    actionTd.innerHTML = `<button class="btn-reserve" onclick="openModal('${row[0]}', '${row[1]}')">Замовити</button>`;
+                } else {
+                    actionTd.innerHTML = `<small style="color:gray">${row[6] || 'Зайнято'}</small>`;
+                }
+                tr.appendChild(actionTd);
+                tb.appendChild(tr);
             });
-            const actionTd = document.createElement("td");
-            if (row[5] === "В наявності") {
-                actionTd.innerHTML = `<button class="btn-reserve" onclick="openModal('${row[0]}', '${row[1]}')">Замовити</button>`;
-            } else {
-                actionTd.innerHTML = `<small>${row[6] || 'Зайнято'}</small>`; // Показує ім'я замовника, якщо воно є
-            }
-            tr.appendChild(actionTd);
-            tb.appendChild(tr);
-        });
+        } catch (e) { console.error("Помилка завантаження:", e); }
     }
 
     function openModal(title, author) {
@@ -126,9 +138,7 @@
         document.getElementById("orderModal").style.display = "block";
     }
 
-    function closeModal() {
-        document.getElementById("orderModal").style.display = "none";
-    }
+    function closeModal() { document.getElementById("orderModal").style.display = "none"; }
 
     function submitOrder() {
         const name = document.getElementById("clientName").value;
@@ -142,6 +152,31 @@
         }).then(() => {
             alert("Замовлення прийнято!");
             closeModal();
+            loadBooks();
+        });
+    }
+
+    function addBook() {
+        const t = document.getElementById('title').value;
+        if (!t) return alert("Назва обов'язкова!");
+        const btn = document.getElementById('addBtn');
+        btn.disabled = true;
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                password: SECRET_PASS,
+                title: t,
+                author: document.getElementById('author').value,
+                year: document.getElementById('year').value,
+                lang: document.getElementById('lang').value,
+                shelf: document.getElementById('shelf').value,
+                status: document.getElementById('status').value
+            })
+        }).then(() => {
+            document.getElementById('title').value = "";
+            btn.disabled = false;
             loadBooks();
         });
     }
