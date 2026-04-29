@@ -55,7 +55,7 @@
         <h2>Додати нову книгу</h2>
         <input type="text" id="title" placeholder="Назва книги *">
         <input type="text" id="author" placeholder="Автор">
-        <input type="number" id="year" placeholder="Рік видання" value="2026">
+        <input type="text" id="shelf" placeholder="Місце (напр. Phil. - 54)">
         <select id="lang">
             <option value="Українська">Українська</option>
             <option value="Російська">Російська</option>
@@ -66,7 +66,6 @@
             <option value="Німецька">Німецька</option>
             <option value="Французька">Французька</option>
         </select>
-        <input type="text" id="shelf" placeholder="Місце на полиці">
         <select id="status">
             <option value="В наявності">В наявності</option>
             <option value="Позичено">Позичено</option>
@@ -79,7 +78,7 @@
     <div style="overflow-x: auto;">
         <table id="bookTable">
             <thead>
-                <tr><th>Назва</th><th>Автор</th><th>Рік</th><th>Мова</th><th>Місце</th><th>Статус</th><th>Дія</th></tr>
+                <tr><th>Назва</th><th>Автор</th><th>Місце</th><th>Мова</th><th>Статус</th><th>Дія</th></tr>
             </thead>
             <tbody></tbody>
         </table>
@@ -98,7 +97,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxj9bpzmeEEhs98QHP052aecXmUZH9zEfCML4c-DOxjUuW2yWSw1lc0LTYJLb44ptKG/exec'; 
+    const SCRIPT_URL = 'ВАШЕ_АКТУАЛЬНЕ_ПОСИЛАННЯ_З_GOOGLE_SCRIPTS'; 
     const SECRET_PASS = 'ofm';
     let currentBook = null;
     let isAuthorized = false;
@@ -121,29 +120,42 @@
             const d = await r.json();
             const tb = document.querySelector("#bookTable tbody");
             tb.innerHTML = "";
-            d.slice(1).reverse().forEach(row => {
+            
+            // d[0] - заголовки. Починаємо з d[1] (дані)
+            for (let i = 1; i < d.length; i++) {
+                const row = d[i];
+                if (!row[0]) continue; 
+
                 const tr = document.createElement("tr");
-                row.slice(0,6).forEach((cell, i) => {
+                
+                // Колонки: Назва(0), Автор(1), Місце(2), Мова/Опис(3)
+                [0, 1, 2, 3].forEach(idx => {
                     const td = document.createElement("td");
-                    if (i === 5) {
-                        let cls = "";
-                        if (cell === "В наявності") cls = "status-available";
-                        else if (cell === "Зарезервовано") cls = "status-reserved";
-                        else cls = "status-borrowed";
-                        td.innerHTML = `<span class="status-badge ${cls}">${cell}</span>`;
-                    } else td.textContent = cell;
+                    td.textContent = row[idx] || "";
                     tr.appendChild(td);
                 });
+
+                // Статус (4)
+                const statusTd = document.createElement("td");
+                const statusValue = row[4] || "В наявності";
+                let cls = "status-available";
+                if (statusValue.includes("Зарезерв")) cls = "status-reserved";
+                else if (statusValue === "Позичено") cls = "status-borrowed";
+                statusTd.innerHTML = `<span class="status-badge ${cls}">${statusValue}</span>`;
+                tr.appendChild(statusTd);
+
+                // Дія (кнопка)
                 const actionTd = document.createElement("td");
-                if (row[5] === "В наявності") {
-                    // Використовуємо JSON.stringify для безпечної передачі назви з лапками
+                if (statusValue === "В наявності") {
                     actionTd.innerHTML = `<button class="btn-reserve" onclick='openModal(${JSON.stringify(row[0])}, ${JSON.stringify(row[1])})'>Замовити</button>`;
                 } else {
-                    actionTd.innerHTML = `<small style="color:gray">${row[6] || 'Зайнято'}</small>`;
+                    // Показуємо ім'я того, хто зайняв (колонка F - індекс 5)
+                    actionTd.innerHTML = `<small style="color:gray">${row[5] || 'Зайнято'}</small>`;
                 }
                 tr.appendChild(actionTd);
+                
                 tb.appendChild(tr);
-            });
+            }
         } catch (e) { console.error("Помилка завантаження:", e); }
     }
 
@@ -180,19 +192,18 @@
                     userEmail: email 
                 })
             });
-            alert("Замовлення надіслано! Бібліотекар скоро зв'яжеться з вами.");
+            alert("Замовлення надіслано!");
             closeModal();
             loadBooks();
         } catch (e) {
-            alert("Помилка при замовленні. Спробуйте пізніше.");
+            alert("Помилка.");
             btn.disabled = false;
-            btn.textContent = "Підтвердити";
         }
     }
 
     function addBook() {
         const t = document.getElementById('title').value;
-        if (!t) return alert("Назва книги обов'язкова!");
+        if (!t) return alert("Назва обов'язкова!");
         const btn = document.getElementById('addBtn');
         btn.disabled = true;
         btn.textContent = "Зберігаємо...";
@@ -204,9 +215,8 @@
                 password: SECRET_PASS,
                 title: t,
                 author: document.getElementById('author').value,
-                year: document.getElementById('year').value,
-                lang: document.getElementById('lang').value,
                 shelf: document.getElementById('shelf').value,
+                lang: document.getElementById('lang').value,
                 status: document.getElementById('status').value
             })
         }).then(() => {
@@ -226,7 +236,6 @@
     }
 
     window.onload = loadBooks;
-    setInterval(loadBooks, 60000); // Оновлювати раз на хвилину
 </script>
 </body>
 </html>
