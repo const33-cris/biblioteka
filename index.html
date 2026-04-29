@@ -8,29 +8,23 @@
         :root { --primary: #5d4037; --accent: #8d6e63; --bg: #f4f1ea; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1 { color: var(--primary); text-align: center; margin-bottom: 20px; }
-        
+        h1 { color: var(--primary); text-align: center; }
         .admin-section { background: #fafafa; border: 1px dashed var(--accent); padding: 25px; border-radius: 8px; margin-bottom: 25px; display: none; }
-        .admin-section input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        
-        button { padding: 12px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 16px; }
+        .admin-section input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button { padding: 12px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-toggle { background: var(--primary); color: white; width: 100%; margin-bottom: 20px; }
-        .btn-add { background: #4caf50; color: white; width: 100%; margin-top: 10px; }
+        .btn-add { background: #4caf50; color: white; width: 100%; }
         .btn-reserve { background: #2196f3; color: white; font-size: 14px; }
-        
         #search { width: 100%; padding: 14px; margin: 20px 0; border: 2px solid var(--accent); border-radius: 6px; font-size: 16px; box-sizing: border-box; }
-        
         .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 600px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background: var(--accent); color: white; }
-        
-        .status-badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block; }
+        .status-badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; }
         .status-available { background: #c8e6c9; color: #2e7d32; }
         .status-reserved { background: #ffecb3; color: #f57f17; }
-
         #orderModal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 15% auto; padding: 25px; border-radius: 10px; width: 320px; text-align: center; }
+        .modal-content { background: white; margin: 15% auto; padding: 25px; border-radius: 10px; width: 300px; text-align: center; }
         .modal-content input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
     </style>
 </head>
@@ -41,12 +35,11 @@
     <button class="btn-toggle" onclick="toggleAdmin()">⚙️ Панель бібліотекаря</button>
 
     <div id="adminPanel" class="admin-section">
-        <h2>Додати нову книгу</h2>
         <input type="text" id="title" placeholder="Назва книги *">
         <input type="text" id="author" placeholder="Автор">
-        <input type="text" id="shelf" placeholder="Місце (напр. Phil. - 54)">
+        <input type="text" id="shelf" placeholder="Місце (напр. ZM - 45)">
         <input type="text" id="desc" placeholder="Опис">
-        <button class="btn-add" id="addBtn" onclick="addBook()">✅ Записати в базу</button>
+        <button class="btn-add" id="addBtn" onclick="addBook()">✅ Додати в таблицю</button>
     </div>
 
     <input type="text" id="search" onkeyup="filterTable()" placeholder="🔍 Пошук за назвою, автором або описом...">
@@ -54,25 +47,16 @@
     <div class="table-wrapper">
         <table id="bookTable">
             <thead>
-                <tr>
-                    <th>Назва</th>
-                    <th>Автор</th>
-                    <th>Місце</th>
-                    <th>Опис</th>
-                    <th>Статус</th>
-                    <th>Дія</th>
-                </tr>
+                <tr><th>Назва</th><th>Автор</th><th>Місце</th><th>Опис</th><th>Статус</th><th>Дія</th></tr>
             </thead>
-            <tbody>
-                <tr><td colspan="6" style="text-align:center;">Завантаження...</td></tr>
-            </tbody>
+            <tbody><tr><td colspan="6" style="text-align:center;">Завантаження...</td></tr></tbody>
         </table>
     </div>
 </div>
 
 <div id="orderModal">
     <div class="modal-content">
-        <h3>Замовлення книги</h3>
+        <h3>Замовити книгу</h3>
         <p id="modalBookTitle" style="font-weight:bold; color:var(--primary);"></p>
         <input type="text" id="clientName" placeholder="Ваше Ім'я">
         <input type="email" id="clientEmail" placeholder="Ваш Email">
@@ -82,9 +66,9 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxj9bpzmeEEhs98QHP052aecXmUZH9zEfCML4c-DOxjUuW2yWSw1lc0LTYJLb44ptKG/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyGWs_oOMtZF6G1qrWzI8aI-4n3ANddEOvPrP8GW8zkf1d_DSguW-IaCaW-pxbJ-8HH/exec';
     const SECRET_PASS = 'ofm';
-    let currentBook = null;
+    let currentBookTitle = null;
     let isAuthorized = false;
 
     function toggleAdmin() {
@@ -107,39 +91,36 @@
                 if (!row[0]) continue; 
 
                 const tr = document.createElement("tr");
-                // Показуємо: Назва(0), Автор(1), Місце(2), Опис(3)
+                // Назва(0), Автор(1), Місце(2), Опис(3)
                 [0, 1, 2, 3].forEach(idx => {
                     const td = document.createElement("td");
                     td.textContent = row[idx] || "";
                     tr.appendChild(td);
                 });
 
-                // Статус (4 - стовпчик E)
+                // Статус (4 - E)
                 const statusTd = document.createElement("td");
-                const statusValue = (row[4] || "В наявності").toString().trim();
-                let statusClass = statusValue.includes("Зарезерв") ? "status-reserved" : "status-available";
-                statusTd.innerHTML = `<span class="status-badge ${statusClass}">${statusValue}</span>`;
+                const status = (row[4] || "В наявності").toString().trim();
+                let sClass = status.includes("Зарезерв") ? "status-reserved" : "status-available";
+                statusTd.innerHTML = `<span class="status-badge ${sClass}">${status}</span>`;
                 tr.appendChild(statusTd);
 
                 // Дія
                 const actionTd = document.createElement("td");
-                if (statusValue === "В наявності") {
-                    actionTd.innerHTML = `<button class="btn-reserve" onclick='openModal(${JSON.stringify(row[0])}, ${JSON.stringify(row[1])})'>Замовити</button>`;
+                if (status === "В наявності") {
+                    actionTd.innerHTML = `<button class="btn-reserve" onclick="openModal('${row[0].replace(/'/g, "\\'")}')">Замовити</button>`;
                 } else {
-                    // Показує ім'я клієнта зі стовпчика F (індекс 5)
+                    // БЕРЕМО ІМ'Я ЗІ СТОВПЦЯ F (Індекс 5)
                     actionTd.innerHTML = `<small style="color:gray">${row[5] || 'Зайнято'}</small>`;
                 }
                 tr.appendChild(actionTd);
                 tbody.appendChild(tr);
             }
-        } catch (e) { 
-            console.error(e);
-            document.querySelector("#bookTable tbody").innerHTML = "<tr><td colspan='6'>Помилка завантаження</td></tr>";
-        }
+        } catch (e) { console.error(e); }
     }
 
-    function openModal(title, author) {
-        currentBook = { title, author };
+    function openModal(title) {
+        currentBookTitle = title;
         document.getElementById("modalBookTitle").textContent = title;
         document.getElementById("orderModal").style.display = "block";
     }
@@ -152,28 +133,17 @@
         if (!name || !email) return alert("Заповніть поля!");
 
         document.getElementById("confirmOrderBtn").disabled = true;
-        document.getElementById("confirmOrderBtn").textContent = "Обробка...";
-
-        try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({ 
-                    action: "reserve", 
-                    title: currentBook.title, 
-                    userName: name, 
-                    userEmail: email 
-                })
-            });
-            alert("Дякуємо! Книгу зарезервовано.");
-            closeModal();
-            loadBooks();
-        } catch (e) { alert("Помилка"); }
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ action: "reserve", title: currentBookTitle, userName: name, userEmail: email })
+        });
+        alert("Успішно заброньовано!");
+        closeModal();
+        loadBooks();
     }
 
     function addBook() {
-        const btn = document.getElementById('addBtn');
-        btn.disabled = true;
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -182,14 +152,9 @@
                 title: document.getElementById('title').value,
                 author: document.getElementById('author').value,
                 shelf: document.getElementById('shelf').value,
-                lang: document.getElementById('desc').value, // Опис іде в стовпчик D
-                status: "В наявності"
+                lang: document.getElementById('desc').value
             })
-        }).then(() => {
-            alert("Додано!");
-            btn.disabled = false;
-            loadBooks();
-        });
+        }).then(() => { alert("Додано!"); loadBooks(); });
     }
 
     function filterTable() {
