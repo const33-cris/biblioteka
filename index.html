@@ -14,7 +14,6 @@
         /* Панель адміністратора */
         .admin-section { background: #fafafa; border: 1px dashed var(--accent); padding: 25px; border-radius: 8px; margin-bottom: 25px; display: none; }
         
-        /* Великі поля на всю ширину */
         .admin-section input, .admin-section select { 
             width: 100%; 
             padding: 14px; 
@@ -50,7 +49,7 @@
 
 <div class="container">
     <h1>⛪ Монастирська Бібліотека</h1>
-    <button class="btn-toggle" onclick="toggleAdmin()">⚙️ Панель бібліотекаря (Додати книгу)</button>
+    <button class="btn-toggle" onclick="toggleAdmin()">⚙️ Панель бібліотекаря</button>
 
     <div id="adminPanel" class="admin-section">
         <h2>Додати нову книгу</h2>
@@ -93,8 +92,8 @@
         <p id="modalBookTitle" style="font-weight:bold; color:var(--primary);"></p>
         <input type="text" id="clientName" placeholder="Ваше Ім'я та Прізвище">
         <input type="email" id="clientEmail" placeholder="Ваш Email">
-        <button style="background:#4caf50; color:white; width:100%" onclick="submitOrder()">Підтвердити</button>
-        <button style="background:#ccc; width:100%; margin-top:5px;" onclick="closeModal()">Скасувати</button>
+        <button id="confirmOrderBtn" style="background:#4caf50; color:white; width:100%" onclick="submitOrder()">Підтвердити</button>
+        <button id="cancelOrderBtn" style="background:#ccc; width:100%; margin-top:5px;" onclick="closeModal()">Скасувати</button>
     </div>
 </div>
 
@@ -137,14 +136,15 @@
                 });
                 const actionTd = document.createElement("td");
                 if (row[5] === "В наявності") {
-                    actionTd.innerHTML = `<button class="btn-reserve" onclick="openModal('${row[0]}', '${row[1]}')">Замовити</button>`;
+                    // Використовуємо JSON.stringify для безпечної передачі назви з лапками
+                    actionTd.innerHTML = `<button class="btn-reserve" onclick='openModal(${JSON.stringify(row[0])}, ${JSON.stringify(row[1])})'>Замовити</button>`;
                 } else {
                     actionTd.innerHTML = `<small style="color:gray">${row[6] || 'Зайнято'}</small>`;
                 }
                 tr.appendChild(actionTd);
                 tb.appendChild(tr);
             });
-        } catch (e) { console.error("Помилка:", e); }
+        } catch (e) { console.error("Помилка завантаження:", e); }
     }
 
     function openModal(title, author) {
@@ -153,22 +153,41 @@
         document.getElementById("orderModal").style.display = "block";
     }
 
-    function closeModal() { document.getElementById("orderModal").style.display = "none"; }
+    function closeModal() { 
+        document.getElementById("orderModal").style.display = "none"; 
+        document.getElementById("confirmOrderBtn").disabled = false;
+        document.getElementById("confirmOrderBtn").textContent = "Підтвердити";
+    }
 
-    function submitOrder() {
+    async function submitOrder() {
         const name = document.getElementById("clientName").value;
         const email = document.getElementById("clientEmail").value;
         if (!name || !email) return alert("Заповніть всі поля!");
 
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ action: "reserve", title: currentBook.title, author: currentBook.author, userName: name, userEmail: email })
-        }).then(() => {
-            alert("Замовлення надіслано!");
+        const btn = document.getElementById("confirmOrderBtn");
+        btn.disabled = true;
+        btn.textContent = "Надсилаємо...";
+
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({ 
+                    action: "reserve", 
+                    title: currentBook.title, 
+                    author: currentBook.author, 
+                    userName: name, 
+                    userEmail: email 
+                })
+            });
+            alert("Замовлення надіслано! Бібліотекар скоро зв'яжеться з вами.");
             closeModal();
             loadBooks();
-        });
+        } catch (e) {
+            alert("Помилка при замовленні. Спробуйте пізніше.");
+            btn.disabled = false;
+            btn.textContent = "Підтвердити";
+        }
     }
 
     function addBook() {
@@ -207,7 +226,7 @@
     }
 
     window.onload = loadBooks;
-    setInterval(loadBooks, 40000);
+    setInterval(loadBooks, 60000); // Оновлювати раз на хвилину
 </script>
 </body>
 </html>
