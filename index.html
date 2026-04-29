@@ -8,38 +8,20 @@
         :root { --primary: #5d4037; --accent: #8d6e63; --bg: #f4f1ea; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
-        h1, h2 { color: var(--primary); text-align: center; }
-
-        /* Панель адміністратора */
+        h1 { color: var(--primary); text-align: center; }
         .admin-section { background: #fafafa; border: 1px dashed var(--accent); padding: 25px; border-radius: 8px; margin-bottom: 25px; display: none; }
-        
-        .admin-section input, .admin-section select { 
-            width: 100%; 
-            padding: 14px; 
-            margin: 10px 0; 
-            border: 1px solid #ccc; 
-            border-radius: 6px; 
-            box-sizing: border-box; 
-            font-size: 16px; 
-        }
-
+        .admin-section input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         button { padding: 12px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 16px; }
         .btn-toggle { background: var(--primary); color: white; width: 100%; margin-bottom: 20px; }
         .btn-add { background: #4caf50; color: white; width: 100%; margin-top: 10px; }
         .btn-reserve { background: #2196f3; color: white; font-size: 14px; }
-
         #search { width: 100%; padding: 14px; margin: 20px 0; border: 2px solid var(--accent); border-radius: 6px; font-size: 16px; }
-
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background: var(--accent); color: white; }
-        
         .status-badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block; }
         .status-available { background: #c8e6c9; color: #2e7d32; }
         .status-reserved { background: #ffecb3; color: #f57f17; }
-        .status-borrowed { background: #ffcdd2; color: #c62828; }
-
         #orderModal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
         .modal-content { background: white; margin: 15% auto; padding: 25px; border-radius: 10px; width: 320px; text-align: center; }
         .modal-content input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
@@ -55,30 +37,17 @@
         <h2>Додати нову книгу</h2>
         <input type="text" id="title" placeholder="Назва книги *">
         <input type="text" id="author" placeholder="Автор">
-        <input type="text" id="shelf" placeholder="Місце (напр. Phil. - 54)">
-        <select id="lang">
-            <option value="Українська">Українська</option>
-            <option value="Російська">Російська</option>
-            <option value="Польська">Польська</option>
-            <option value="Італійська">Італійська</option>
-            <option value="Англійська">Англійська</option>
-            <option value="Латинська">Латинська</option>
-            <option value="Німецька">Німецька</option>
-            <option value="Французька">Французька</option>
-        </select>
-        <select id="status">
-            <option value="В наявності">В наявності</option>
-            <option value="Позичено">Позичено</option>
-        </select>
+        <input type="text" id="shelf" placeholder="Місце (напр. ZM - 45)">
+        <input type="text" id="desc" placeholder="Опис">
         <button class="btn-add" id="addBtn" onclick="addBook()">✅ Записати в базу</button>
     </div>
 
-    <input type="text" id="search" onkeyup="filterTable()" placeholder="🔍 Пошук за назвою, автором або мовою...">
+    <input type="text" id="search" onkeyup="filterTable()" placeholder="🔍 Пошук за назвою, автором або описом...">
 
     <div style="overflow-x: auto;">
         <table id="bookTable">
             <thead>
-                <tr><th>Назва</th><th>Автор</th><th>Місце</th><th>Мова</th><th>Статус</th><th>Дія</th></tr>
+                <tr><th>Назва</th><th>Автор</th><th>Місце</th><th>Опис</th><th>Статус</th><th>Дія</th></tr>
             </thead>
             <tbody></tbody>
         </table>
@@ -89,29 +58,22 @@
     <div class="modal-content">
         <h3>Замовлення книги</h3>
         <p id="modalBookTitle" style="font-weight:bold; color:var(--primary);"></p>
-        <input type="text" id="clientName" placeholder="Ваше Ім'я та Прізвище">
+        <input type="text" id="clientName" placeholder="Ваше Ім'я">
         <input type="email" id="clientEmail" placeholder="Ваш Email">
         <button id="confirmOrderBtn" style="background:#4caf50; color:white; width:100%" onclick="submitOrder()">Підтвердити</button>
-        <button id="cancelOrderBtn" style="background:#ccc; width:100%; margin-top:5px;" onclick="closeModal()">Скасувати</button>
+        <button style="background:#ccc; width:100%; margin-top:5px;" onclick="closeModal()">Скасувати</button>
     </div>
 </div>
 
 <script>
-    const SCRIPT_URL = 'ВАШЕ_АКТУАЛЬНЕ_ПОСИЛАННЯ_З_GOOGLE_SCRIPTS'; 
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxj9bpzmeEEhs98QHP052aecXmUZH9zEfCML4c-DOxjUuW2yWSw1lc0LTYJLb44ptKG/exec'; // ПЕРЕВІРТЕ ПОСИЛАННЯ
     const SECRET_PASS = 'ofm';
     let currentBook = null;
     let isAuthorized = false;
 
     function toggleAdmin() {
-        if (!isAuthorized) {
-            if (prompt("Введіть пароль:") === SECRET_PASS) {
-                isAuthorized = true;
-                document.getElementById("adminPanel").style.display = "block";
-            }
-        } else {
-            let s = document.getElementById("adminPanel").style;
-            s.display = s.display === "none" ? "block" : "none";
-        }
+        if (!isAuthorized && prompt("Введіть пароль:") === SECRET_PASS) isAuthorized = true;
+        if (isAuthorized) document.getElementById("adminPanel").style.display = document.getElementById("adminPanel").style.display === "block" ? "none" : "block";
     }
 
     async function loadBooks() {
@@ -121,14 +83,12 @@
             const tb = document.querySelector("#bookTable tbody");
             tb.innerHTML = "";
             
-            // d[0] - заголовки. Починаємо з d[1] (дані)
             for (let i = 1; i < d.length; i++) {
                 const row = d[i];
                 if (!row[0]) continue; 
 
                 const tr = document.createElement("tr");
-                
-                // Колонки: Назва(0), Автор(1), Місце(2), Мова/Опис(3)
+                // Назва(0), Автор(1), Місце(2), Опис(3)
                 [0, 1, 2, 3].forEach(idx => {
                     const td = document.createElement("td");
                     td.textContent = row[idx] || "";
@@ -138,25 +98,23 @@
                 // Статус (4)
                 const statusTd = document.createElement("td");
                 const statusValue = row[4] || "В наявності";
-                let cls = "status-available";
-                if (statusValue.includes("Зарезерв")) cls = "status-reserved";
-                else if (statusValue === "Позичено") cls = "status-borrowed";
-                statusTd.innerHTML = `<span class="status-badge ${cls}">${statusValue}</span>`;
+                let statusClass = "status-available";
+                if (statusValue.includes("Зарезерв")) statusClass = "status-reserved";
+                
+                statusTd.innerHTML = `<span class="status-badge ${statusClass}">${statusValue}</span>`;
                 tr.appendChild(statusTd);
 
-                // Дія (кнопка)
+                // Кнопка (5)
                 const actionTd = document.createElement("td");
                 if (statusValue === "В наявності") {
                     actionTd.innerHTML = `<button class="btn-reserve" onclick='openModal(${JSON.stringify(row[0])}, ${JSON.stringify(row[1])})'>Замовити</button>`;
                 } else {
-                    // Показуємо ім'я того, хто зайняв (колонка F - індекс 5)
-                    actionTd.innerHTML = `<small style="color:gray">${row[5] || 'Зайнято'}</small>`;
+                    actionTd.innerHTML = `<small style="color:gray">Зайнято</small>`;
                 }
                 tr.appendChild(actionTd);
-                
                 tb.appendChild(tr);
             }
-        } catch (e) { console.error("Помилка завантаження:", e); }
+        } catch (e) { console.error("Помилка:", e); }
     }
 
     function openModal(title, author) {
@@ -165,67 +123,37 @@
         document.getElementById("orderModal").style.display = "block";
     }
 
-    function closeModal() { 
-        document.getElementById("orderModal").style.display = "none"; 
-        document.getElementById("confirmOrderBtn").disabled = false;
-        document.getElementById("confirmOrderBtn").textContent = "Підтвердити";
-    }
+    function closeModal() { document.getElementById("orderModal").style.display = "none"; }
 
     async function submitOrder() {
         const name = document.getElementById("clientName").value;
         const email = document.getElementById("clientEmail").value;
-        if (!name || !email) return alert("Заповніть всі поля!");
-
-        const btn = document.getElementById("confirmOrderBtn");
-        btn.disabled = true;
-        btn.textContent = "Надсилаємо...";
-
-        try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({ 
-                    action: "reserve", 
-                    title: currentBook.title, 
-                    author: currentBook.author, 
-                    userName: name, 
-                    userEmail: email 
-                })
-            });
-            alert("Замовлення надіслано!");
-            closeModal();
-            loadBooks();
-        } catch (e) {
-            alert("Помилка.");
-            btn.disabled = false;
-        }
+        if (!name || !email) return alert("Заповніть поля!");
+        
+        document.getElementById("confirmOrderBtn").disabled = true;
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ action: "reserve", title: currentBook.title, userName: name, userEmail: email })
+        });
+        alert("Замовлено!");
+        closeModal();
+        loadBooks();
     }
 
     function addBook() {
-        const t = document.getElementById('title').value;
-        if (!t) return alert("Назва обов'язкова!");
-        const btn = document.getElementById('addBtn');
-        btn.disabled = true;
-        btn.textContent = "Зберігаємо...";
-
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify({
                 password: SECRET_PASS,
-                title: t,
+                title: document.getElementById('title').value,
                 author: document.getElementById('author').value,
                 shelf: document.getElementById('shelf').value,
-                lang: document.getElementById('lang').value,
-                status: document.getElementById('status').value
+                lang: document.getElementById('desc').value, // Опис йде в колонку мови
+                status: "В наявності"
             })
-        }).then(() => {
-            document.getElementById('title').value = "";
-            document.getElementById('author').value = "";
-            btn.disabled = false;
-            btn.textContent = "✅ Записати в базу";
-            loadBooks();
-        });
+        }).then(() => { loadBooks(); alert("Додано!"); });
     }
 
     function filterTable() {
